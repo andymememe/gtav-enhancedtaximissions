@@ -137,6 +137,14 @@ Public Class EnhancedTaxiMissions
 
     ' Check if cars is ok
     Public Function IsCarOK(maxSeats As Short, vehicleClass As VehicleClass)
+        If IsThereASecondCustomer And maxSeats < 2 Then
+            Return False
+        End If
+
+        If IsThereAThirdCustomer And maxSeats < 3 Then
+            Return False
+        End If
+
         Return maxSeats >= 1 And
         vehicleClass <> VehicleClass.Motorcycles And
         vehicleClass <> VehicleClass.Boats And
@@ -329,7 +337,7 @@ Public Class EnhancedTaxiMissions
         Else
             headerText = "Enhanced Taxi Missions"
         End If
-        UI.Items.Add(New UIText(headerText, New Point(3, 1), 0.5, UItext_White, 1, False))
+        UI.Items.Add(New UIText(headerText, New Point(3, 1), 0.5, UItext_White, GTA.Font.HouseScript, False))
 
 
         '========== COUNTDOWN TIMER / CLOCK
@@ -358,8 +366,13 @@ Public Class EnhancedTaxiMissions
         '========== DISPATCH STATUS
         Dim statusMessageModification As String
         If Game.Player.Character.IsInVehicle = True Then
-            UI.Items.Add(New UIRectangle(New Point(0, 27), New Size(240, 20), UIcolor_Status))
-            statusMessageModification = UI_DispatchStatus
+            If IsCarOK(MaxSeats, Game.Player.Character.CurrentVehicle.ClassType) Then
+                UI.Items.Add(New UIRectangle(New Point(0, 27), New Size(240, 20), UIcolor_Status))
+                statusMessageModification = UI_DispatchStatus
+            Else
+                UI.Items.Add(New UIRectangle(New Point(0, 27), New Size(240, 20), Color.IndianRed))
+                statusMessageModification = "You cannot use this vehicle!"
+            End If
         Else
             UI.Items.Add(New UIRectangle(New Point(0, 27), New Size(240, 20), Color.IndianRed))
             statusMessageModification = "Please return to your vehicle!"
@@ -1148,7 +1161,7 @@ Public Class EnhancedTaxiMissions
 
 
         If MiniGameStage = MiniGameStages.PedGettingInCar Then
-            If isHonking = True Then
+            If Game.Player.Character.IsInVehicle And isHonking = True Then
                 If IsCustomerNudged2 = False Then
                     If CustomerPed.Exists Then
                         If MaxSeats >= 3 Then
@@ -2021,24 +2034,25 @@ Public Class EnhancedTaxiMissions
     End Sub
 
     Private Sub PedHasReachedCar()
-
-        If CustomerPed.Exists Then
-            If MaxSeats >= 3 Then
-                CustomerPed.Task.EnterVehicle(Game.Player.Character.CurrentVehicle, VehicleSeat.RightRear, 20000)
-            Else
-                CustomerPed.Task.EnterVehicle(Game.Player.Character.CurrentVehicle, VehicleSeat.Passenger, 20000)
+        If Game.Player.Character.IsInVehicle Then
+            If CustomerPed.Exists Then
+                If MaxSeats >= 3 Then
+                    CustomerPed.Task.EnterVehicle(Game.Player.Character.CurrentVehicle, VehicleSeat.RightRear, 20000)
+                Else
+                    CustomerPed.Task.EnterVehicle(Game.Player.Character.CurrentVehicle, VehicleSeat.Passenger, 20000)
+                End If
             End If
-        End If
 
-        If IsThereASecondCustomer = True Then
-            If Customer2Ped.Exists = True Then
-                Customer2Ped.Task.EnterVehicle(Game.Player.Character.CurrentVehicle, VehicleSeat.LeftRear, 20000)
+            If IsThereASecondCustomer = True Then
+                If Customer2Ped.Exists = True Then
+                    Customer2Ped.Task.EnterVehicle(Game.Player.Character.CurrentVehicle, VehicleSeat.LeftRear, 20000)
+                End If
             End If
-        End If
 
-        If IsThereAThirdCustomer = True Then
-            If Customer3Ped.Exists = True Then
-                Customer3Ped.Task.EnterVehicle(Game.Player.Character.CurrentVehicle, VehicleSeat.Passenger, 20000)
+            If IsThereAThirdCustomer = True Then
+                If Customer3Ped.Exists = True Then
+                    Customer3Ped.Task.EnterVehicle(Game.Player.Character.CurrentVehicle, VehicleSeat.Passenger, 20000)
+                End If
             End If
         End If
 
